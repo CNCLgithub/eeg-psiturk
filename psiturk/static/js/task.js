@@ -18,14 +18,17 @@ var PAGESIZE = 500;
 // Define global experiment variables
 var SCALE_COMPLETE = false; // users do not need to repeat scaling
 var PROLIFIC_ID = "";
-var N_TRIALS = 128;
+var N_TRIALS = 10;
 var START_INSTRUCTION = 0;
 
 // Debug Variables
 var SKIP_INSTRUCTIONS = false;
-var SKIP_QUIZ = false;
+var SKIP_QUIZ = true;
 //var SKIP_INSTRUCTIONS = true;
 //var SKIP_QUIZ = true;
+
+var fixcrosslist = fixCrossList();
+var imgcondlist = imgCondList();
 
 // All pages to be loaded
 var pages = [
@@ -34,6 +37,10 @@ var pages = [
     "restart.html",
     "postquestionnaire.html"
 ];
+
+const init = (async () => {
+    await psiTurk.preloadPages(pages);
+})()
 
 psiTurk.preloadPages(pages);
 
@@ -168,9 +175,12 @@ var Experiment = function(condlist) {
     psiTurk.showPage('page.html');
 
     shuffle(condlist);
+    shuffle(fixcrosslist);
+    shuffle(imgcondlist);
 
     var curidx = 0;
     var starttime = -1;
+
 
     // uses `Page` to show a single trial
     var runTrial = function(curIdx) {
@@ -178,9 +188,11 @@ var Experiment = function(condlist) {
         if (curIdx === condlist.length) {
             end_experiment();
         }
+        var jitter = jitter_number(1, 2);
+
         
-        var pg = new Page("", "movie", condlist[curIdx], true,
-                         next_delay = 1.0);
+        var pg = new Page("", "stim_img", imgcondlist[curIdx], true,
+                         next_delay = 0.2, header_text = "", fixCrossType = fixcrosslist[curIdx], jitter = jitter);
 
         pg.showProgress(curIdx, condlist.length);
         // `Page` will record the subject responce when "next" is clicked
@@ -190,7 +202,7 @@ var Experiment = function(condlist) {
 
         pg.showPage(
             function() {
-                register_response(pg, curIdx);
+                register_response(pg, curIdx, jitter);
                 // Clears slider from screen
                 // pg.clearResponse();
                 runTrial(curIdx + 1);
@@ -199,7 +211,7 @@ var Experiment = function(condlist) {
     };
 
     // Record the subject's response for a given trial.
-    var register_response = function(trialPage, cIdx) {
+    var register_response = function(trialPage, cIdx, jitter) {
         var rt = new Date().getTime() - starttime;
         var rep = trialPage.retrieveResponse();
         // you may wish to format `rep` appropriately
@@ -209,6 +221,8 @@ var Experiment = function(condlist) {
                 'ReactionTime': rt,
                 'IsInstruction': false,
                 'TrialName': condlist[cIdx],
+                'FixCrossType': fixcrosslist[cIdx],
+                'FixCrossJitter': Math.floor(jitter * 1000),
                 'Response' : rep,
             }
         );
@@ -302,7 +316,8 @@ var currentview;
 // madness TODO fix
 var dataset;
 
-$(window).load(function() {
+$(window).on('load', async () => {
+    await init;
     
     function load_condlist() {
         $.ajax({
@@ -314,7 +329,8 @@ $(window).load(function() {
                 condlist = data[condition];
                 condlist = condlist.slice(0, N_TRIALS);
                 console.log(condlist);
-                ProlificID(condlist);
+                InstructionRunner(condlist);
+                // ProlificID(condlist);
             },
             error: function() {
                 setTimeout(500, do_load)

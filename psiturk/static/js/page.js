@@ -8,7 +8,7 @@ class Page {
      *******************/
 
     constructor(text, mediatype, mediadata, show_response,
-                next_delay = 0.0, header_text = "") {
+                next_delay = 0.0, header_text = "", fixCrossType = "", jitter = 0.0) {
 
         // page specific variables
         this.text = text;
@@ -27,6 +27,7 @@ class Page {
         this.probe_reminder = document.getElementById("probe_reminder");
         this.nextbutton = document.getElementById("nextbutton");
         this.mediascreen = document.getElementById("mediascreen");
+        // this.fix_cross = document.getElementById("fix-cross");
         this.header = document.getElementById("page_header");
         this.message = document.getElementById("message");
         this.progress = document.getElementById("progress");
@@ -39,7 +40,10 @@ class Page {
         this.query.style.display = 'none';
         this.query.style.color = 'black';
         this.mediascreen.innerHTML = "";
+        // this.fix_cross.innerHTML = "";
         this.response = undefined;
+        this.fixCrossType = fixCrossType;
+        this.jitter = jitter;
     }
 
     // Loads content to the page
@@ -94,8 +98,14 @@ class Page {
         this.mediascreen.style.backgroundColor = 'white';
         this.scale_region.style.display = 'none';
 
+        // if (this.fixCrossType != "") {
+        //     this.showFixationCross();
+        // }
+
         if (this.mediatype === 'image') {
             this.showImage();
+        } else if (this.mediatype === 'stim_img') {
+            this.showStimImage();
         } else if (this.mediatype === 'movie') {
             this.showMovie();
         } else if (this.mediatype == 'scale'){
@@ -221,38 +231,76 @@ class Page {
     // plays movie
     showMovie() {
         let me = this;
+        this.showFixationCross()
 
-        this.mediascreen.innerHTML = make_mov(this.mediadata, PAGESIZE);
-        this.mediascreen.style.display = 'block';
-        var video = document.getElementById('video');
-        video.style.display = 'none'
+        // setTimeout is being used to display the stimuli after the fixation cross
+        // has been displayed for jittered amount of time
+        setTimeout(() => {
+            this.mediascreen.innerHTML = make_mov(this.mediadata, PAGESIZE);
+            this.mediascreen.style.display = 'block';
+            var video = document.getElementById('video');
+            video.style.display = 'none'
 
-        video.onended = function() {
-            video.style.display = 'none';
-            video.style.visibility = 'hidden';
-	    console.log(video.style);
-            me.addResponse();
-        };
+            video.onended = function() {
+                video.style.display = 'none';
+                video.style.visibility = 'hidden';
+            console.log(video.style);
+                me.addResponse();
+            };
 
-        video.oncanplaythrough = function() {
+            video.oncanplaythrough = function() {
 
-            sleep(me.next_delay*1000).then(() => {
-                video.style.display = 'block'
-                video.play();
-            });
+                sleep(me.next_delay*1000).then(() => {
+                    video.style.display = 'block'
+                    video.play();
+                });
 
-        };
+            };
 
-        // making sure there is space for rotation
-        // (scaling according to PAGESIZE)
-        this.scaleMediascreen();
+            // making sure there is space for rotation
+            // (scaling according to PAGESIZE)
+            this.scaleMediascreen();
 
-        video.style.transform = `rotate(${this.rot_angle}deg)`;
+            video.style.transform = `rotate(${this.rot_angle}deg)`;
+
+        }, Math.floor(this.jitter*1000));
     }
 
     showImage() {
         this.mediascreen.innerHTML = make_img(this.mediadata, PAGESIZE) + "<br>";
         this.addResponse();
+    }
+
+    showStimImage() {
+        let me = this;
+        this.showFixationCross()
+
+        setTimeout(() => {
+            this.mediascreen.style.display = 'block';
+            this.mediascreen.innerHTML = make_stim_img(this.mediadata, PAGESIZE) + "<br>";
+
+            var stimImg = document.getElementById('img');
+            stimImg.style.display = 'block';
+
+            // adjust the cross to the center of the mediascreen
+            this.scaleMediascreen();
+
+            setTimeout(() => {
+                stimImg.style.display = 'none';
+                stimImg.style.visibility = 'hidden';
+                me.addResponse();
+            }, 500);
+
+        }, Math.floor(this.jitter*1000));
+    }
+
+    // displays fixation cross
+    showFixationCross() {
+        this.mediascreen.style.display = 'block';
+        this.mediascreen.innerHTML = make_fix_cross(this.fixCrossType, PAGESIZE);
+
+        // adjust the cross to the center of the mediascreen
+        this.scaleMediascreen();
     }
 
     showEmpty() {
