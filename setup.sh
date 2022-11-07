@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Download links
-CONTLINK="library://mebelledonne/default/psiturk-apline:1.0.0"
+CONTLINK="docker://cpllab/psiturk:latest"
 # Path to put data
 DATAPATH="psiturk/static/"
 DATALINK="https://yale.box.com/shared/static/eyu6jgppz6ek4a3vz63t9t1ipqit2q3m.gz"
@@ -18,7 +18,7 @@ supported targets:
 # container setup
 [[ "${@}" =~ "cont" ]] || echo "Not touching container"
 [[ "${@}" =~ "cont" ]] && echo "pulling container" && \
-    singularity pull "psiturk.sif" "$CONTLINK"
+    apptainer pull "psiturk.sif" "$CONTLINK"
 
 # datasets
 [[ "${@}" =~ "data" ]] || [[ "${@}" =~ "data" ]] || echo "Not touching data"
