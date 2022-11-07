@@ -1,7 +1,8 @@
-# Psiturk Experiment`
+# Psiturk Experiment
 
-Psiturk experiment used in Galileo (response slider) style experiments
+Psiturk experiment used in Galileo (response slider) style experiments.
 
+Based off of [CNCLgithub/rooms-psiturk](https://github.com/CNCLgithub/rooms-psiturk).
 ## Setup
 
 ### dependencies
@@ -28,8 +29,8 @@ This setup file will, by default, pull a container and data files from box.
 
 
 ```bash
-chmod +x start_psiturk.sh
-./start_psiturk.sh on
+chmod +x run.sh
+./run.sh on
 ```
 
 
