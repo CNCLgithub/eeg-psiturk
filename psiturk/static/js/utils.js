@@ -71,6 +71,55 @@ var make_mov = function(movname, size) {
     return ret;
 };
 
+// add html to display the fixation cross
+var make_fix_cross = function(crossType, size) {
+    var cross = "<img id=\"img\" ";
+
+    cross += `class="movieobj" src="static/images/${crossType}.svg" alt="Movie" style="height: auto; width: ${size}px">`;
+
+    return cross;
+};
+
+// generate number to randomize interstimulus interval
+function jitter_number(min, max){
+    const sec = Math.random() * (max - min) + min;
+    return sec;
+}
+
+// create the condition list for the fixation cross
+var fixCrossList = function() {
+    var tmp = Array(128);
+
+    for (i = 0; i < tmp.length; i++) {
+        if (i%2 == 0) {
+            tmp[i] = "fix-cross-horizontal";
+        } else {
+            tmp[i] = "fix-cross-vertical";
+        }
+    }
+
+    return tmp;
+}
+
+// create the condition list for the stimuli images
+var imgCondList = function() {
+    var tmp = Array(25);
+
+    for (i = 0; i < tmp.length; i++) {
+        tmp[i] = (i + 1).toString() + "_print.png";
+    }
+
+    return tmp;
+}
+
+// add html to display the stimulus image
+var make_stim_img = function(imgname, size) {
+    var r = "<img id=\"img\" ";
+
+    r += `class="movieobj" src="static/images/test-stimuli/${imgname}" alt="Movie" style="height: auto; width: ${size}px">`;
+
+    return r;
+};
 
 var add_rotation_to_triallist = function(triallist, n_scenes) {
     var n_trials_per_scene = triallist.length/n_scenes;
@@ -134,6 +183,8 @@ var openFullscreen = function() {
         elem.msRequestFullscreen();
     }
 }
+
+
 
 function make_fullscreen_button() {
     var ret = `<button type="button" style="margin: 0 auto" id="fullscreen_button">Switch to full screen mode</button>`;
