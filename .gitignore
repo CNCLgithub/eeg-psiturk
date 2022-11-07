@@ -24,5 +24,7 @@ psiturk/static/data
 *.tar.gz
 psiturk/__pycache__
 psiturk.sif
+psiturk_old.sif
 psiturk_latest.sif
 .psiturk_history
+psiturk/static/images/test-stimuli/
