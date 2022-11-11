@@ -80,13 +80,24 @@ var make_fix_cross = function(crossType, size) {
     return cross;
 };
 
+// add html to display the stimulus image
+var make_stim_img = function(imgname, size) {
+    var r = "<img id=\"img\" ";
+
+    r += `class="movieobj" src="static/images/test-stimuli/${imgname}" alt="Movie" style="height: auto; width: ${size}px">`;
+
+    return r;
+};
+
 // generate number to randomize interstimulus interval
+// not used anymore -- Chloe 11/11/22
 function jitter_number(min, max){
     const sec = Math.random() * (max - min) + min;
     return sec;
 }
 
 // create the condition list for the fixation cross
+// not used anymore -- Chloe 11/11/22
 var fixCrossList = function() {
     var tmp = Array(128);
 
@@ -102,6 +113,7 @@ var fixCrossList = function() {
 }
 
 // create the condition list for the stimuli images
+// not used anymore -- Chloe 11/11/22
 var imgCondList = function() {
     var tmp = Array(25);
 
@@ -111,15 +123,6 @@ var imgCondList = function() {
 
     return tmp;
 }
-
-// add html to display the stimulus image
-var make_stim_img = function(imgname, size) {
-    var r = "<img id=\"img\" ";
-
-    r += `class="movieobj" src="static/images/test-stimuli/${imgname}" alt="Movie" style="height: auto; width: ${size}px">`;
-
-    return r;
-};
 
 var add_rotation_to_triallist = function(triallist, n_scenes) {
     var n_trials_per_scene = triallist.length/n_scenes;
