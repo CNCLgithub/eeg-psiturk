@@ -17,7 +17,7 @@ var PAGESIZE = 500;
 
 // Define global experiment variables
 var SCALE_COMPLETE = false; // users do not need to repeat scaling
-var PROLIFIC_ID = "";
+var SUBJECT_ID = "";
 var N_TRIALS = 10;
 var START_INSTRUCTION = 0;
 
@@ -27,8 +27,10 @@ var SKIP_QUIZ = true;
 //var SKIP_INSTRUCTIONS = true;
 //var SKIP_QUIZ = true;
 
-var fixcrosslist = fixCrossList();
-var imgcondlist = imgCondList();
+// TODO: Change all `condlist` to `imgcondlist`
+// not used anymore -- Chloe 11/11/22
+// var fixcrosslist = fixCrossList();
+// var imgcondlist = imgCondList();
 
 // All pages to be loaded
 var pages = [
@@ -46,22 +48,22 @@ psiTurk.preloadPages(pages);
 
 
 /****************
- * Prolific ID  *
+ * Subject ID  *
  ****************/
 
-var ProlificID = function(condlist) {
+var SubjectID = function(condlist) {
     while (true) {
-        PROLIFIC_ID = prompt("Please enter Prolific ID to proceed:");
+        SUBJECT_ID = prompt("Please enter Participant Number to proceed:");
         // a small check on length
-        if (PROLIFIC_ID.length == 24) {
+        if (SUBJECT_ID.length != 0) {
             psiTurk.recordTrialData({
-                'prolific_id': PROLIFIC_ID,
+                'participant_num': SUBJECT_ID,
             });
-            console.log("prolific_id recorded:", PROLIFIC_ID);
+            console.log("participant_num recorded:", SUBJECT_ID);
             InstructionRunner(condlist);
             return;
         }
-        alert("Make sure you enter the Prolific ID correctly, please try again.");
+        alert("Make sure you enter the Participant Number correctly, please try again.");
     }
 }
 
@@ -175,8 +177,6 @@ var Experiment = function(condlist) {
     psiTurk.showPage('page.html');
 
     shuffle(condlist);
-    shuffle(fixcrosslist);
-    shuffle(imgcondlist);
 
     var curidx = 0;
     var starttime = -1;
@@ -188,16 +188,18 @@ var Experiment = function(condlist) {
         if (curIdx === condlist.length) {
             end_experiment();
         }
-        var jitter = jitter_number(1, 2);
 
-        
-        var pg = new Page("", "stim_img", imgcondlist[curIdx], true,
-                         next_delay = 0.2, header_text = "", fixCrossType = fixcrosslist[curIdx], jitter = jitter);
+        var cross = condlist[curIdx][0]
+        var stim = condlist[curIdx][1]
+        var jitter = condlist[curIdx][2]
+
+        var pg = new Page("", "stim_img", stim, true,
+                         next_delay = 1.0, header_text = "", fixCrossType = cross, jitter = jitter);
 
         pg.showProgress(curIdx, condlist.length);
+
         // `Page` will record the subject responce when "next" is clicked
         // and go to the next trial
-
         starttime = new Date().getTime();
 
         pg.showPage(
@@ -220,9 +222,9 @@ var Experiment = function(condlist) {
                 'TrialOrder': cIdx,
                 'ReactionTime': rt,
                 'IsInstruction': false,
-                'TrialName': condlist[cIdx],
-                'FixCrossType': fixcrosslist[cIdx],
-                'FixCrossJitter': Math.floor(jitter * 1000),
+                'TrialName': condlist[cIdx][1],
+                'FixCrossType': condlist[cIdx][0],
+                'FixCrossJitter': jitter,
                 'Response' : rep,
             }
         );
@@ -322,15 +324,20 @@ $(window).on('load', async () => {
     function load_condlist() {
         $.ajax({
             dataType: 'json',
-            url: "static/data/condlist.json",
+            url: "static/data/tmpcondlist.json",
             async: false,
             success: function(data) {
-                console.log("condition", condition);
-                condlist = data[condition];
+                // console.log("condition", condition);
+                // condlist = data[condition];
+
+                condlist = data;
+                // ? shuffle condlist before slicing?
+                // shuffle(condlist)
+
                 condlist = condlist.slice(0, N_TRIALS);
                 console.log(condlist);
+                // SubjectID(condlist);
                 InstructionRunner(condlist);
-                // ProlificID(condlist);
             },
             error: function() {
                 setTimeout(500, do_load)
