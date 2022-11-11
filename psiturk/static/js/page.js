@@ -98,10 +98,6 @@ class Page {
         this.mediascreen.style.backgroundColor = 'white';
         this.scale_region.style.display = 'none';
 
-        // if (this.fixCrossType != "") {
-        //     this.showFixationCross();
-        // }
-
         if (this.mediatype === 'image') {
             this.showImage();
         } else if (this.mediatype === 'stim_img') {
@@ -271,10 +267,14 @@ class Page {
         this.addResponse();
     }
 
+    // display stimuli images
     showStimImage() {
         let me = this;
+        // display the fixation cross
         this.showFixationCross()
 
+        // Timeout is being used to delay the stimuli
+        // so the fixation cross can appear for a jittered interval
         setTimeout(() => {
             this.mediascreen.style.display = 'block';
             this.mediascreen.innerHTML = make_stim_img(this.mediadata, PAGESIZE) + "<br>";
@@ -282,16 +282,21 @@ class Page {
             var stimImg = document.getElementById('img');
             stimImg.style.display = 'block';
 
-            // adjust the cross to the center of the mediascreen
+            // adjust the image to the center of the mediascreen
             this.scaleMediascreen();
 
+            // Timeout is used here to control the time interval
+            // that the image is displayed for
             setTimeout(() => {
+                // remove and hide the image after the delay
                 stimImg.style.display = 'none';
                 stimImg.style.visibility = 'hidden';
+
+                // then add the response
                 me.addResponse();
             }, 500);
 
-        }, Math.floor(this.jitter*1000));
+        }, this.jitter);
     }
 
     // displays fixation cross
