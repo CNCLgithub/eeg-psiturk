@@ -38,6 +38,8 @@ class Page {
         this.response_region.style.display = 'none';
 
         this.query.style.display = 'none';
+        // this.query.style.display = 'block';
+        // this.query.style.visibility = "hidden";
         this.query.style.color = 'black';
         this.mediascreen.innerHTML = "";
         // this.fix_cross.innerHTML = "";
@@ -259,7 +261,7 @@ class Page {
 
             video.style.transform = `rotate(${this.rot_angle}deg)`;
 
-        }, Math.floor(this.jitter*1000));
+        }, this.jitter);
     }
 
     showImage() {
@@ -273,11 +275,15 @@ class Page {
         // display the fixation cross
         this.showFixationCross()
 
+        preloadImg(this.mediadata)
+
+
         // Timeout is being used to delay the stimuli
         // so the fixation cross can appear for a jittered interval
         setTimeout(() => {
+
             this.mediascreen.style.display = 'block';
-            this.mediascreen.innerHTML = make_stim_img(this.mediadata, PAGESIZE) + "<br>";
+            this.mediascreen.innerHTML = make_stim_img(this.mediadata, PAGESIZE);
 
             var stimImg = document.getElementById('img');
             stimImg.style.display = 'block';
@@ -301,6 +307,8 @@ class Page {
 
     // displays fixation cross
     showFixationCross() {
+        let me = this;
+
         this.mediascreen.style.display = 'block';
         this.mediascreen.innerHTML = make_fix_cross(this.fixCrossType, PAGESIZE);
 

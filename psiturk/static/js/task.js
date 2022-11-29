@@ -324,7 +324,7 @@ $(window).on('load', async () => {
     function load_condlist() {
         $.ajax({
             dataType: 'json',
-            url: "static/data/tmpcondlist.json",
+            url: "static/data/condlist.json",
             async: false,
             success: function(data) {
                 // console.log("condition", condition);

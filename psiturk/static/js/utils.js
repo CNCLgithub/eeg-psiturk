@@ -75,54 +75,61 @@ var make_mov = function(movname, size) {
 var make_fix_cross = function(crossType, size) {
     var cross = "<img id=\"img\" ";
 
-    cross += `class="movieobj" src="static/images/${crossType}.svg" alt="Movie" style="height: auto; width: ${size}px">`;
+    cross += `class="movieobj" src="static/data/images/${crossType}.svg" alt="Movie" style="height: auto; width: ${size}px">`;
 
     return cross;
 };
 
 // add html to display the stimulus image
 var make_stim_img = function(imgname, size) {
-    var r = "<img id=\"img\" ";
+    var stim = "<img id=\"img\" ";
 
-    r += `class="movieobj" src="static/images/test-stimuli/${imgname}" alt="Movie" style="height: auto; width: ${size}px">`;
+    stim += `class="movieobj" src="static/data/images/stims/${imgname}" alt="Movie" style="height: auto; width: ${size}px">`;
 
-    return r;
+    return stim;
 };
+
+function preloadImg(imgname)
+{
+    var img = new Image();
+    img.src = "static/data/images/stims/" + imgname;
+}
+
 
 // generate number to randomize interstimulus interval
 // not used anymore -- Chloe 11/11/22
-function jitter_number(min, max){
-    const sec = Math.random() * (max - min) + min;
-    return sec;
-}
+// function jitter_number(min, max){
+//     const sec = Math.random() * (max - min) + min;
+//     return sec;
+// }
 
 // create the condition list for the fixation cross
 // not used anymore -- Chloe 11/11/22
-var fixCrossList = function() {
-    var tmp = Array(128);
+// var fixCrossList = function() {
+//     var tmp = Array(128);
 
-    for (i = 0; i < tmp.length; i++) {
-        if (i%2 == 0) {
-            tmp[i] = "fix-cross-horizontal";
-        } else {
-            tmp[i] = "fix-cross-vertical";
-        }
-    }
+//     for (i = 0; i < tmp.length; i++) {
+//         if (i%2 == 0) {
+//             tmp[i] = "fix-cross-horizontal";
+//         } else {
+//             tmp[i] = "fix-cross-vertical";
+//         }
+//     }
 
-    return tmp;
-}
+//     return tmp;
+// }
 
 // create the condition list for the stimuli images
 // not used anymore -- Chloe 11/11/22
-var imgCondList = function() {
-    var tmp = Array(25);
+// var imgCondList = function() {
+//     var tmp = Array(25);
 
-    for (i = 0; i < tmp.length; i++) {
-        tmp[i] = (i + 1).toString() + "_print.png";
-    }
+//     for (i = 0; i < tmp.length; i++) {
+//         tmp[i] = (i + 1).toString() + "_print.png";
+//     }
 
-    return tmp;
-}
+//     return tmp;
+// }
 
 var add_rotation_to_triallist = function(triallist, n_scenes) {
     var n_trials_per_scene = triallist.length/n_scenes;
