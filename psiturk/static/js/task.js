@@ -194,7 +194,7 @@ var Experiment = function(condlist) {
         var jitter = condlist[curIdx][2]
 
         var pg = new Page("", "stim_img", stim, true,
-                         next_delay = 1.0, header_text = "", fixCrossType = cross, jitter = jitter);
+                         next_delay = 2.0, header_text = "", fixCrossType = cross, jitter = jitter);
 
         pg.showProgress(curIdx, condlist.length);
 
