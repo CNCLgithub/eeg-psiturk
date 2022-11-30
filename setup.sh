@@ -4,13 +4,16 @@
 CONTLINK="docker://cpllab/psiturk:latest"
 # Path to put data
 DATAPATH="psiturk/static/"
-DATALINK="https://yale.box.com/shared/static/eyu6jgppz6ek4a3vz63t9t1ipqit2q3m.gz"
+LINKHASH="4u6kvx68wbg6tx3fmonrcphueprsy2j6"
+DATALINK="https://yale.box.com/shared/static/${LINKHASH}.gz"
+ENVNAME="eeg-psiturk-env"
 
 
 usage="$(basename "$0") [targets...] -- setup an environmental components of project
 supported targets:
     cont : either pull the singularity container or build from scratch
     data : pull data
+    env : create conda env from given file
 "
 
 [ $# -eq 0 ] || [[ "${@}" =~ "help" ]] && echo "$usage"
@@ -23,6 +26,11 @@ supported targets:
 # datasets
 [[ "${@}" =~ "data" ]] || [[ "${@}" =~ "data" ]] || echo "Not touching data"
 [[ "${@}" =~ "data" ]] && echo "pulling data" && \
-    wget "$DATALINK" -O "data.tar.gz" && \
-    tar -xvzf "data.tar.gz" -C "$DATAPATH" && \
-    rm "data.tar.gz"
+    wget "$DATALINK" -O "ecog_pilot_data.tar.gz" && \
+    tar -xvzf "ecog_pilot_data.tar.gz" -C "$DATAPATH" && \
+    rm "ecog_pilot_data.tar.gz"
+
+# datasets
+[[ "${@}" =~ "env" ]] || [[ "${@}" =~ "env" ]] || echo "Not touching conda env"
+[[ "${@}" =~ "env" ]] && echo "creating env" && \
+    conda env create -n "$ENVNAME" -f env.yml
