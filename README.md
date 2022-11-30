@@ -3,7 +3,7 @@
 Psiturk experiment used in Galileo (response slider) style experiments.
 
 Based off of [CNCLgithub/rooms-psiturk](https://github.com/CNCLgithub/rooms-psiturk).
-## Setup
+## Setup Linux
 
 ### dependencies
 
@@ -24,13 +24,28 @@ chmod +x setup.sh
 
 This setup file will, by default, pull a container and data files from box.
 
+## Setup Mac
+
+### dependencies
+- conda
+- tar
+
+### setup
+
+```bash
+chmod +x setup.sh
+./setup.sh --help
+./setup.sh data env
+```
+
 
 ## Running psiturk
 
 
 ```bash
-chmod +x run.sh
-./run.sh on
+conda activate eeg-psiturk-env
+cd psiturk/
+psiturk server on
 ```
 
 
