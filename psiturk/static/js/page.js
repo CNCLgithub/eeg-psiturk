@@ -45,6 +45,7 @@ class Page {
         this.response = undefined;
         this.fixCrossType = fixCrossType;
         this.jitter = jitter;
+        // this.DISPLAY_STIM = false;
     }
 
     // Loads content to the page
@@ -80,10 +81,7 @@ class Page {
                 if (me.response == "j" || me.response == "f"){
                     callback();
                 }
-
-                // me.renderStimImage();
             };
-            // me.renderStimImage();
         } else {
             // create callback to progress when done
             this.nextbutton.onclick = function() {
@@ -93,7 +91,6 @@ class Page {
 
         this.addText();
         this.addMedia();
-        // this.renderStimImage();
     }
     
     retrieveResponse() {
@@ -151,8 +148,6 @@ class Page {
             this.allowNext();
         }
     }
-
-
     renderResponse() {
         this.response_region.style.display = "block";
         if (this.show_response) {
@@ -192,21 +187,7 @@ class Page {
         };
     }
 
-    waitingKeypress(ctx = this) {
-        return new Promise((resolve) => {
-        document.addEventListener('keydown', onKeyHandler);
-
-        function onKeyHandler(evt) {
-            if (evt.key === 'f' || evt.key === 'j') {
-                // ctx.response = evt.key;
-                document.removeEventListener('keydown', onKeyHandler);
-                resolve();
-            }
-        }
-        });
-      }
-
-    showStimImageCallback(ctx = this) {
+    enableMidResponse(ctx = this) {
         document.onkeydown = function(evt) {
             const { key: r } = evt || window.event;
             if (r === "j" || r === "f" ) {
@@ -216,17 +197,12 @@ class Page {
                 // hide response section while stim is shown
                 ctx.delResponse();
 
-                // callback();
                 // TODO: fix how the stimImage is rendered
                 // TODO: stim dissapears after keydown, instead of timeout
                 // show stim image
                 ctx.renderStimImage();
             }
-            // ctx.renderStimImage();
         };
-
-        // ctx.renderStimImage();
-        // return await this.renderStimImage();
     }
 
     scalePage() {
@@ -288,7 +264,7 @@ class Page {
         let self = this;
         fs_button.onclick = function() {
             console.log("click registered for FS");
-            openFullscreen();
+            // openFullscreen();
             self.addResponse();
         }
     }
@@ -367,19 +343,6 @@ class Page {
         }, 750);
 
     }
-    // no longer in use -- Chloe 11/29/22
-    // clearStimImage(callback = () => {}) {
-    //     console.log("clearing image")
-    //     setTimeout(() => {
-    //         console.log("waiting 500ms")
-    //     }, 500)
-
-    //     const stimImg = document.getElementById('img');
-    //     stimImg.style.display = "none";
-    //     stimImg.style.visibility = "hidden";
-    //     callback();
-    //     console.log("clearing image: complete")
-    // }
 
     // display stimuli images
     showStimImage() {
@@ -391,52 +354,18 @@ class Page {
         // display fixation cross
         this.showFixationCross()
 
-        // add response while fixation cross is displayed
-        // this.addResponse(() => this.showStimImageCallback(me));
-        // this.mediascreen.addEventListener('keydown', (event) => {
-
-        // });
-
-        // function delay(ms) {
-        //     console.log(ms)
-        // }
-        
-        // delay(this.jitter).then(() => alert("hello"));
-        // async function test_cross() {
-        //     await delay(this.jitter);
-        //     // await this.waitingKeypress();
-
-        //     // hide fix cross after jittered interval
-        //     this.mediascreen.style.visibility = 'hidden';
-
-        //     // add response while fixation cross is displayed
-        //     // this.addResponse(() => this.showStimImageCallback(me));
-        //     // this.renderStimImage();
-        // }
-        // async function test_stim() {
-        //     await waitingKeypress();
-        //     this.renderStimImage();
-        // }
-        // test_cross();
-        // test_stim();
         // display the fixation cross
         setTimeout(() => {
             // hide fix cross after jittered interval
             this.mediascreen.style.visibility = 'hidden';
 
             // add response while fixation cross is displayed
-            this.addResponse(() => this.showStimImageCallback(me));
-            // this.renderStimImage();
-
+            this.addResponse(() => this.enableMidResponse(me));
         }, this.jitter)
-
-        // this.renderStimImage();
     }
 
     // displays fixation cross
     showFixationCross() {
-        let me = this;
-
         this.mediascreen.style.display = 'block';
         this.mediascreen.innerHTML = make_fix_cross(this.fixCrossType, PAGESIZE);
 

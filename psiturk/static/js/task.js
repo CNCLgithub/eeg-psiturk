@@ -202,7 +202,7 @@ var Experiment = function(condlist) {
         // and go to the next trial
         starttime = new Date().getTime();
 
-        pg.showPage(
+        pg.showPage_(
             function() {
                 register_response(pg, curIdx, jitter);
                 // Clears slider from screen
