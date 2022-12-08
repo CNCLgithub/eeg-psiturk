@@ -27,7 +27,6 @@ class Page {
         this.probe_reminder = document.getElementById("probe_reminder");
         this.nextbutton = document.getElementById("nextbutton");
         this.mediascreen = document.getElementById("mediascreen");
-        // this.fix_cross = document.getElementById("fix-cross");
         this.header = document.getElementById("page_header");
         this.message = document.getElementById("message");
         this.progress = document.getElementById("progress");
@@ -62,16 +61,39 @@ class Page {
                 }
             };
         } else {
-
             // create callback to progress when done
             this.nextbutton.onclick = function() {
                 callback();
             };
         }
 
+        this.addText();
+        this.addMedia();
+    }
+
+    showPage_(callback) {        
+        var me = this;
+        if (this.show_response) {
+            document.onkeyup = function(evt) {
+                // this is how you progress to the next trial
+                // configure key for EEG
+                if (me.response == "j" || me.response == "f"){
+                    callback();
+                }
+
+                // me.renderStimImage();
+            };
+            // me.renderStimImage();
+        } else {
+            // create callback to progress when done
+            this.nextbutton.onclick = function() {
+                callback();
+            };
+        }
 
         this.addText();
         this.addMedia();
+        // this.renderStimImage();
     }
     
     retrieveResponse() {
@@ -120,14 +142,30 @@ class Page {
 
 
     // Makes the response query visable
-    addResponse() {
-        this.response_region.style.display = 'block';
+    addResponse(callback = this.enableResponse) {
+        this.renderResponse()
         if (this.show_response) {
-            this.query.style.display = 'block';
-            this.enableResponse();
+            callback();
         // if no response required, then simply allow to go further
         } else {
             this.allowNext();
+        }
+    }
+
+
+    renderResponse() {
+        this.response_region.style.display = "block";
+        if (this.show_response) {
+            this.query.style.display = "block";
+            this.query.style.visibility = "visible";
+        }
+    }
+
+    delResponse() {
+        // this.response_region.style.display = "none";
+        if (this.show_response) {
+            // this.query.style.display = "none";
+            this.query.style.visibility = "hidden"
         }
     }
 
@@ -153,8 +191,43 @@ class Page {
             }
         };
     }
-    
 
+    waitingKeypress(ctx = this) {
+        return new Promise((resolve) => {
+        document.addEventListener('keydown', onKeyHandler);
+
+        function onKeyHandler(evt) {
+            if (evt.key === 'f' || evt.key === 'j') {
+                // ctx.response = evt.key;
+                document.removeEventListener('keydown', onKeyHandler);
+                resolve();
+            }
+        }
+        });
+      }
+
+    showStimImageCallback(ctx = this) {
+        document.onkeydown = function(evt) {
+            const { key: r } = evt || window.event;
+            if (r === "j" || r === "f" ) {
+                // record key response
+                ctx.response = r;
+
+                // hide response section while stim is shown
+                ctx.delResponse();
+
+                // callback();
+                // TODO: fix how the stimImage is rendered
+                // TODO: stim dissapears after keydown, instead of timeout
+                // show stim image
+                ctx.renderStimImage();
+            }
+            // ctx.renderStimImage();
+        };
+
+        // ctx.renderStimImage();
+        // return await this.renderStimImage();
+    }
 
     scalePage() {
         this.mediascreen.innerHTML = make_img(this.mediadata, PAGESIZE) + "<br>";
@@ -269,40 +342,95 @@ class Page {
         this.addResponse();
     }
 
+    renderStimImage(callback = () => {}) {
+        // preload stim image
+        preloadImg(this.mediadata)
+
+        this.mediascreen.style.display = 'block';
+        this.mediascreen.style.visibility = 'visible';
+        this.mediascreen.innerHTML = make_stim_img(this.mediadata, PAGESIZE);
+
+        var stimImg = document.getElementById('img');
+        stimImg.style.display = 'block';
+
+        // adjust the image to the center of the mediascreen
+        this.scaleMediascreen();
+        
+        // Timeout is used here to control the time interval
+        // that the image is displayed for
+        setTimeout(() => {
+            // remove and hide the image after the delay
+            stimImg.style.display = 'none';
+            stimImg.style.visibility = 'hidden';
+
+            callback();
+        }, 750);
+
+    }
+    // no longer in use -- Chloe 11/29/22
+    // clearStimImage(callback = () => {}) {
+    //     console.log("clearing image")
+    //     setTimeout(() => {
+    //         console.log("waiting 500ms")
+    //     }, 500)
+
+    //     const stimImg = document.getElementById('img');
+    //     stimImg.style.display = "none";
+    //     stimImg.style.visibility = "hidden";
+    //     callback();
+    //     console.log("clearing image: complete")
+    // }
+
     // display stimuli images
     showStimImage() {
         let me = this;
-        // display the fixation cross
+
+        this.mediascreen.style.display = 'block';
+        this.mediascreen.style.visibility = 'visible';
+
+        // display fixation cross
         this.showFixationCross()
 
-        preloadImg(this.mediadata)
+        // add response while fixation cross is displayed
+        // this.addResponse(() => this.showStimImageCallback(me));
+        // this.mediascreen.addEventListener('keydown', (event) => {
 
+        // });
 
-        // Timeout is being used to delay the stimuli
-        // so the fixation cross can appear for a jittered interval
+        // function delay(ms) {
+        //     console.log(ms)
+        // }
+        
+        // delay(this.jitter).then(() => alert("hello"));
+        // async function test_cross() {
+        //     await delay(this.jitter);
+        //     // await this.waitingKeypress();
+
+        //     // hide fix cross after jittered interval
+        //     this.mediascreen.style.visibility = 'hidden';
+
+        //     // add response while fixation cross is displayed
+        //     // this.addResponse(() => this.showStimImageCallback(me));
+        //     // this.renderStimImage();
+        // }
+        // async function test_stim() {
+        //     await waitingKeypress();
+        //     this.renderStimImage();
+        // }
+        // test_cross();
+        // test_stim();
+        // display the fixation cross
         setTimeout(() => {
+            // hide fix cross after jittered interval
+            this.mediascreen.style.visibility = 'hidden';
 
-            this.mediascreen.style.display = 'block';
-            this.mediascreen.innerHTML = make_stim_img(this.mediadata, PAGESIZE);
+            // add response while fixation cross is displayed
+            this.addResponse(() => this.showStimImageCallback(me));
+            // this.renderStimImage();
 
-            var stimImg = document.getElementById('img');
-            stimImg.style.display = 'block';
+        }, this.jitter)
 
-            // adjust the image to the center of the mediascreen
-            this.scaleMediascreen();
-
-            // Timeout is used here to control the time interval
-            // that the image is displayed for
-            setTimeout(() => {
-                // remove and hide the image after the delay
-                stimImg.style.display = 'none';
-                stimImg.style.visibility = 'hidden';
-
-                // then add the response
-                me.addResponse();
-            }, 500);
-
-        }, this.jitter);
+        // this.renderStimImage();
     }
 
     // displays fixation cross
