@@ -27,7 +27,6 @@ class Page {
         this.probe_reminder = document.getElementById("probe_reminder");
         this.nextbutton = document.getElementById("nextbutton");
         this.mediascreen = document.getElementById("mediascreen");
-        // this.fix_cross = document.getElementById("fix-cross");
         this.header = document.getElementById("page_header");
         this.message = document.getElementById("message");
         this.progress = document.getElementById("progress");
@@ -118,10 +117,11 @@ class Page {
 
 
     // Makes the response query visable
-    addResponse(callback = this.enableResponse) {
-        this.renderResponse()
+    addResponse() {
+        this.response_region.style.display = 'block';
         if (this.show_response) {
-            callback();
+            this.query.style.display = 'block';
+            this.enableResponse();
         // if no response required, then simply allow to go further
         } else {
             this.allowNext();
@@ -137,7 +137,9 @@ class Page {
     }
 
     delResponse() {
+        // this.response_region.style.display = "none";
         if (this.show_response) {
+            // this.query.style.display = "none";
             this.query.style.visibility = "hidden"
         }
     }
@@ -161,24 +163,6 @@ class Page {
             var r = evt.key;
             if (r === "j" || r === "f" ){
                 me.response = r;
-            }
-        };
-    }
-
-    showStimImageCallback(ctx = this) {
-        document.onkeydown = function(evt) {
-            const { key: r } = evt || window.event;
-            if (r === "j" || r === "f" ){
-                // record key response
-                ctx.response = r;
-
-                // hide response section while stim is shown
-                ctx.delResponse();
-
-                // TODO: fix how the stimImage is rendered
-                // TODO: stim dissapears after keydown, instead of timeout
-                // show stim image
-                ctx.renderStimImage();
             }
         };
     }
@@ -242,7 +226,7 @@ class Page {
         let self = this;
         fs_button.onclick = function() {
             console.log("click registered for FS");
-            openFullscreen();
+            // openFullscreen();
             self.addResponse();
         }
     }
@@ -296,7 +280,8 @@ class Page {
         this.addResponse();
     }
 
-    renderStimImage(callback = () => {}) {
+    renderStimImage() {
+        let me = this;
         // preload stim image
         preloadImg(this.mediadata)
 
@@ -309,7 +294,7 @@ class Page {
 
         // adjust the image to the center of the mediascreen
         this.scaleMediascreen();
-
+        
         // Timeout is used here to control the time interval
         // that the image is displayed for
         setTimeout(() => {
@@ -317,46 +302,40 @@ class Page {
             stimImg.style.display = 'none';
             stimImg.style.visibility = 'hidden';
 
-            callback();
-        }, 750);
+            me.addResponse()
+        }, 500);
 
     }
-    // no longer in use -- Chloe 11/29/22
-    // clearStimImage(callback = () => {}) {
-    //     console.log("clearing image")
-    //     setTimeout(() => {
-    //         console.log("waiting 500ms")
-    //     }, 500)
-
-    //     const stimImg = document.getElementById('img');
-    //     stimImg.style.display = "none";
-    //     stimImg.style.visibility = "hidden";
-    //     callback();
-    //     console.log("clearing image: complete")
-    // }
 
     // display stimuli images
     showStimImage() {
         let me = this;
 
-        this.mediascreen.style.display = 'block';
-        this.mediascreen.style.visibility = 'visible';
-
         // display fixation cross
         this.showFixationCross()
 
-        // display the fixation cross
         setTimeout(() => {
-            // hide fix cross after jittered interval
-            this.mediascreen.style.visibility = 'hidden';
+            this.mediascreen.style.display = 'block';
+            this.mediascreen.style.visibility = 'visible';
+            this.mediascreen.innerHTML = make_stim_img(this.mediadata, PAGESIZE);
 
-            // add response while fixation cross is displayed
-            this.addResponse(() => this.showStimImageCallback(me));
+            var stimImg = document.getElementById('img');
+            stimImg.style.display = 'block';
 
-            // this.renderStimImage(me);
+            // adjust the image to the center of the mediascreen
+            this.scaleMediascreen();
+            
+            // Timeout is used here to control the time interval
+            // that the image is displayed for
+            setTimeout(() => {
+                // remove and hide the image after the delay
+                stimImg.style.display = 'none';
+                stimImg.style.visibility = 'hidden';
+
+                me.addResponse()
+            }, 500);
         }, this.jitter)
 
-        // this.renderStimImage();
     }
 
     // displays fixation cross
