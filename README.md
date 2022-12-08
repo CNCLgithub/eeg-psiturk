@@ -22,6 +22,13 @@ chmod +x setup.sh
 ./setup.sh cont data
 ```
 
+### running the server
+```bash
+apptainer shell psiturk.sif
+cd psiturk
+psiturk server on
+```
+
 This setup file will, by default, pull a container and data files from box.
 
 ## Setup Mac
