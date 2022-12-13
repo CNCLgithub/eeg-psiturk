@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://unpkg.com/jspsych@7.3.1"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@1.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-instructions@1.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-external-html@1.1.2"></script>
+    <link href="https://unpkg.com/jspsych@7.3.1/css/jspsych.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="static/css/style.css" type="text/css"/>
+    <link rel="stylesheet" href="static/css/bootstrap.min.css" type="text/css"/>
+  </head>
+  </head>
+  <body></body>
+  <script>
+    var trial_list = [];
+
+    var condlist = [["fix-cross-horizontal", "1.png", 1000], ["fix-cross-vertical", "2.png", 1052], ["fix-cross-horizontal", "3.png", 1105], ["fix-cross-vertical", "4.png", 1157], ["fix-cross-horizontal", "5.png", 1210], ["fix-cross-vertical", "6.png", 1263], ["fix-cross-horizontal", "7.png", 1315], ["fix-cross-vertical", "8.png", 1368], ["fix-cross-horizontal", "9.png", 1421], ["fix-cross-vertical", "10.png", 1473], ["fix-cross-horizontal", "11.png", 1526], ["fix-cross-vertical", "12.png", 1578], ["fix-cross-horizontal", "13.png", 1631], ["fix-cross-vertical", "14.png", 1684], ["fix-cross-horizontal", "15.png", 1736], ["fix-cross-vertical", "16.png", 1789], ["fix-cross-horizontal", "17.png", 1842], ["fix-cross-vertical", "18.png", 1894], ["fix-cross-horizontal", "19.png", 1947], ["fix-cross-vertical", "20.png", 2000]];
+
+    var jsPsych = initJsPsych({
+        show_progress_bar: true,
+        on_finish: function() {
+            // uncomment below for debugging
+            jsPsych.data.displayData();
+
+            // using the participant ID to save responses locally
+            var subject_id = jsPsych.data.get().filter({ type: 'participant_id' })["trials"][0]["response"]["Q0"];
+            jsPsych.data.get().localSave('csv', subject_id + '.csv');
+        }
+    });
+
+    // all images are used in standard trials that can be automatically preloaded (as well as being used in trials 
+    // that use timeline variables), so we can preload all image files with the auto_preload option
+    var preload = {
+      type: jsPsychPreload,
+      auto_preload: true,
+    };
+
+    var participant_id = {
+        type: jsPsychSurveyText,
+        questions: [
+            {prompt: 'What is your Participant ID?'}
+        ],
+        data: {
+            type: "participant_id"
+        }
+    }
+
+    // TODO: fix consent
+    var check_consent = function(elem) {
+        if (document.getElementById('consent_checkbox').checked) {
+            return true;
+        }
+        else {
+            alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
+            return false;
+        }
+
+        return false;
+    };
+
+    // TODO: fix consent
+    // declare the block.
+    var consent = {
+        type: jsPsychExternalHtml,
+        url: "consent.html",
+        cont_btn: "start",
+        check_fn: check_consent
+    };
+
+    // trial_list.push(preload);
+    // trial_list.push(participant_id);
+    trial_list.push(consent);
+
+    var instructions = {
+        type: jsPsychInstructions,
+        pages: [
+            "<b>Hi, thank you for volunteering to help out with our study!</b><br><br>" +
+            "Please take a moment to adjust your seating so that you can comfortably watch the monitor and use the keyboard/mouse.<br>" +
+            "Feel free to dim the lights as well. " +
+            "Close the door or do whatever is necessary to minimize disturbance during the experiment. <br>" +
+            "Please also take a moment to silence your phone so that you are not interrupted by any messages mid-experiment." +
+            "<br><br>" +
+            "Click <b>Next</b> when you are ready to continue.",
+            "At the beginning of each instance of the task, you will briefly see a cross, followed by an image of a room.<br><br>"+
+            "<span style='color:blue'>Your task is to determine wether the cross has a longer <b>HORIZONTAL</b> bar, or a longer <b>VERTICAL</b> bar.</span><br><br>" +
+            "Click <b>Next</b> to continue.",
+            "In the middle of each instance of the task, please record your response with your key board.<br>" +
+            "<span style='color:red'><b>You will not be able to progress until you make a selection.</b></span><br><br>" +
+            "Also, please keep your hands near the <b>F and J</b> keys for comfort and accuracy. <br><br>" +
+            "Click <b>Next</b> to begin the study.",
+        ],
+        show_clickable_nav: true,
+        show_page_number: true,
+        page_label: "<b>Instructions</b>",
+        allow_backward: false,
+    }
+
+    trial_list.push(preload, participant_id, instructions);
+
+    var shuffle_condlist = jsPsych.randomization.shuffle(condlist);
+
+    for (i = 0; i < shuffle_condlist.length; i++) {
+        var cross = shuffle_condlist[i][0];
+        var stim = shuffle_condlist[i][1];
+        var jitter = shuffle_condlist[i][2];
+
+        var fix_cross = {
+            type: jsPsychImageKeyboardResponse,
+            stimulus: "static/data/images/" + cross + ".svg",
+            choices: ['f','j'],
+            prompt: '<p>Press "<b>F</b>" if <b>HORIZONTAL</b> is longer, otherwise press "<b>J</b>" if <b>VERTICAL</b> is longer</p>',
+            maintain_aspect_ratio: true,
+            stimulus_width: 350,
+            stimulus_duration: jitter,
+            data: {
+                cross_type: cross,
+                jitter_duration: jitter,
+                type: "fixation",
+            },
+        };
+
+        var stim_img = {
+            type: jsPsychImageKeyboardResponse,
+            stimulus: "static/data/images/stims/" + stim,
+            choices: "NO_KEYS",
+            trial_duration: 500,
+            // post_trial_gap: 250,
+            data: {
+                type: "stim_img",
+            }
+        };
+
+        trial_list.push(fix_cross);
+        trial_list.push(stim_img);
+    }
+
+    var end_trial = {
+        type: jsPsychInstructions,
+        pages: [
+            "<b>Thank you for volunteering to help out with our study!</b><br><br>" +
+            "Click <b>Done</b> to submit your responses.",
+        ],
+        show_clickable_nav: true,
+        allow_backward: false,
+        button_label_next: "<b>Done</b>"
+    }
+
+    trial_list.push(end_trial);
+    jsPsych.run(trial_list);
+
+  </script>
+</html>
+
