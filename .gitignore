@@ -28,3 +28,6 @@ psiturk_old.sif
 psiturk_latest.sif
 .psiturk_history
 psiturk/static/images/test-stimuli/
+jspsych
+responses/*
+static/data/
