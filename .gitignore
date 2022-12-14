@@ -30,4 +30,4 @@ psiturk_latest.sif
 psiturk/static/images/test-stimuli/
 jspsych
 responses/*
-static/data/
+# static/data/
