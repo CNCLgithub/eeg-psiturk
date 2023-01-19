@@ -10,34 +10,16 @@
 // Initalize psiturk object
 var psiTurk = new PsiTurk(uniqueId, adServerLoc, mode);
 
-// Names of elements used in the experiment
-var PROGRESS = "progress";
-var FULL_CONTAINER= "full-container";
-var PAGESIZE = 500;
-
 // Define global experiment variables
-var SCALE_COMPLETE = false; // users do not need to repeat scaling
-var SUBJECT_ID = "";
 var N_TRIALS = 10;
-var START_INSTRUCTION = 0;
 
 // Debug Variables
+var SKIP_SUBJECT_ID = false;
 var SKIP_INSTRUCTIONS = false;
-var SKIP_QUIZ = true;
-//var SKIP_INSTRUCTIONS = true;
-//var SKIP_QUIZ = true;
-
-// TODO: Change all `condlist` to `imgcondlist`
-// not used anymore -- Chloe 11/11/22
-// var fixcrosslist = fixCrossList();
-// var imgcondlist = imgCondList();
 
 // All pages to be loaded
 var pages = [
     "trial.html",
-    "page.html",
-    "quiz.html",
-    "restart.html",
     "postquestionnaire.html"
 ];
 
@@ -47,136 +29,16 @@ const init = (async () => {
 
 psiTurk.preloadPages(pages);
 
-
-/****************
- * Subject ID  *
- ****************/
-
-var SubjectID = function(condlist) {
-    while (true) {
-        SUBJECT_ID = prompt("Please enter Participant Number to proceed:");
-        // a small check on length
-        if (SUBJECT_ID.length != 0) {
-            psiTurk.recordTrialData({
-                'participant_num': SUBJECT_ID,
-            });
-            console.log("participant_num recorded:", SUBJECT_ID);
-            InstructionRunner(condlist);
-            return;
-        }
-        alert("Make sure you enter the Participant Number correctly, please try again.");
-    }
-}
-
-
-/****************
- * Instructions  *
- ****************/
-
-var InstructionRunner = function(condlist) {
-    psiTurk.showPage('page.html');
-
-    var start_instruction_page = START_INSTRUCTION;
-    var nTrials = condlist.length;
-    var ninstruct = instructions.length;
-
-    // Plays next instruction or exits.
-    // If there is another page, it is reach via callback in `page.showPage`
-    var show_instruction_page = function(i) {
-
-        if (i < ninstruct) {
-            // constructing Page using the the instructions.js
-            var page = new Page(...instructions[i],
-                                header_text = "Instructions");
-
-            page.showPage(function() {
-                // page.clearResponse();
-                show_instruction_page(i + 1);
-            });
-        } else {
-            end_instructions();
-        }
-    };
-
-    var end_instructions = function() {
-        psiTurk.finishInstructions();
-        quiz(function() {
-            InstructionRunner(condlist);
-        },
-            function() {
-                currentview = new Experiment(condlist);
-            })
-    };
-    if (SKIP_INSTRUCTIONS) {
-        end_instructions();
-    } else {
-        // start the loop
-        show_instruction_page(start_instruction_page);
-    };
-};
-
-
-/*********
- * Quiz  *
- *********/
-
-// Describes the comprehension check
-var loop = 1;
-var quiz = function(goBack, goNext) {
-    function record_responses() {
-        var allRight = true;
-        $('select').each(function(i, val) {
-            psiTurk.recordTrialData({
-                'phase': "INSTRUCTQUIZ",
-                'question': this.id,
-                'answer': this.value
-            });
-
-            if (this.id === 'trueFalse1' && this.value != 'c') {
-                allRight = false;
-            } else if (this.id === 'trueFalse2' && this.value != 'a') {
-                allRight = false;
-            }
-
-        });
-        return allRight
-    };
-    if (SKIP_QUIZ) {
-        goNext();
-    } else {
-        psiTurk.showPage('quiz.html')
-        $('#continue').click(function() {
-            if (record_responses()) {
-                // Record that the user has finished the instructions and
-                // moved on to the experiment. This changes their status code
-                // in the database.
-                psiTurk.recordUnstructuredData('instructionloops', loop);
-                psiTurk.finishInstructions();
-                //console.log('Finished instructions');
-                // Move on to the experiment
-                goNext();
-            } else {
-                // Otherwise, replay the instructions...
-                loop++;
-                psiTurk.showPage('restart.html');
-                $('.continue').click(
-                    function() {
-                        goBack();
-                        // psiTurk.doInstructions(instructionPages, goBack) TODO REMOVE?
-                    });
-            }
-        });
-
-    };
-};
-
 /**************
  * Experiment *
  **************/
 
 
 var Experiment = function(condlist, trials) {
+    // empty html template for jsPsych to use
     psiTurk.showPage('trial.html');
+
+    // shuffle conditions
     shuffle(condlist);
 
     // all images are used in standard trials that can be automatically preloaded (as well as being used in trials 
@@ -185,6 +47,8 @@ var Experiment = function(condlist, trials) {
         type: jsPsychPreload,
         auto_preload: true,
     };
+
+    trials.push(preload);
 
     // ask for participant ID
     var participant_id = {
@@ -224,9 +88,9 @@ var Experiment = function(condlist, trials) {
     }
 
     // add the following trial pages to be displayed in their respective order
-    trials.push(preload, participant_id, instructions);
+    if (SKIP_SUBJECT_ID == false) {trials.push(participant_id)};
+    if (SKIP_INSTRUCTIONS == false) {trials.push(instructions)};
     
-
     for (i = 0; i < condlist.length; i++) {
         var cross = condlist[i][0];
         var stim = condlist[i][1];
@@ -278,8 +142,54 @@ var Experiment = function(condlist, trials) {
     trials.push(end_trial);
 };
 
+/*******************
+ * Run Task
+ ******************/
+
+$(window).on('load', async () => {
+    await init;
+    
+    function load_condlist() {
+        $.ajax({
+            dataType: 'json',
+            url: "static/data/condlist.json",
+            async: false,
+            success: function(data) {
+                condlist = data;
+                condlist = condlist.slice(0, N_TRIALS);
+                var trials = [];
+
+                var jsPsych = initJsPsych({
+                    show_progress_bar: true,
+                    on_trial_finish: function () {
+                        // record data for psiturk database after every trial
+                        psiTurk.recordTrialData(jsPsych.data.getLastTrialData());
+                    },
+                    on_finish: function () {
+                        // save all recorded data to psiturk database
+                        psiTurk.saveData();
+                    }
+                });
+
+                Experiment(condlist, trials);
+                jsPsych.run(trials);
+            }
+        });
+
+    };
+  
+    if (isMobileTablet()){
+        console.log("mobile browser detected");
+        alert(`Sorry, but mobile or tablet browsers are not supported. Please switch to a desktop browser or return the hit.`);
+        return;
+    }
+
+    load_condlist();
+});
 
 
+// not being used for this EEG experiment -- chloë 01/19/2023
+// only needed if you want a post-questionnnaire
 /****************
  * Questionnaire *
  ****************/
@@ -344,62 +254,3 @@ var Questionnaire = function() {
 
 
 };
-
-// Task object to keep track of the current phase
-var currentview;
-
-/*******************
- * Run Task
- ******************/
-
-
-// madness TODO fix
-var dataset;
-
-$(window).on('load', async () => {
-    await init;
-    
-    function load_condlist() {
-        $.ajax({
-            dataType: 'json',
-            url: "static/data/condlist.json",
-            async: false,
-            success: function(data) {
-                // condlist = data[condition];
-
-                condlist = data;
-                condlist = condlist.slice(0, N_TRIALS);
-                var trials = [];
-
-                var jsPsych = initJsPsych({
-                    show_progress_bar: true,
-                    on_trial_finish: function () {
-                        psiTurk.recordTrialData(jsPsych.data.getLastTrialData());
-                    },
-                    on_finish: function () {
-                        psiTurk.saveData();
-                    }
-                });
-
-                // SubjectID(condlist);
-                Experiment(condlist, trials);
-                jsPsych.run(trials);
-            },
-            error: function() {
-                setTimeout(500, do_load)
-            },
-            failure: function() {
-                setTimeout(500, do_load)
-            }
-        });
-
-    };
-  
-    if (isMobileTablet()){
-        console.log("mobile browser detected");
-        alert(`Sorry, but mobile or tablet browsers are not supported. Please switch to a desktop browser or return the hit.`);
-        return;
-    }
-
-    load_condlist();
-});
