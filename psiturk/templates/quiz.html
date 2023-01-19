@@ -1,0 +1,56 @@
+<!--WRAPPER-->
+<div id="wrapper">
+
+    <!--LOGIN FORM-->
+    <div name="login-form" class="login-form">
+        <!--HEADER-->
+        <div class="header">
+        <!--TITLE--><h1>Comprehension Check</h1><!--END TITLE-->
+        <!--DESCRIPTION--><span></span><!-- END DESCRIPTION-->
+        </div>
+        <!--END HEADER-->
+
+        <div class="questionnaire">
+          <p id="toptext">
+              Before beginning the experiment, you must answer a few simple questions to ensure that the instructions are clear.
+              <br>If you do not answer all questions correctly, you will be returned to the start of the instructions.
+          <form id="prequiz" action="debrief" method="post">
+            <div class="question">
+              <p class="questiontext">
+                Which of the following is <b>true</b> regarding the task:
+              <select id="trueFalse1" name="featureAttend">
+                <option value="noresp" SELECTED></option>
+                <option value="a">Respond with "j" if the two images are similar</option>
+                <option value="b">Respond with "j" if the two images are different</option>
+                <option value="c">Respond with "j" if the two images are the same.</option>
+              </select>
+              </p>
+            </div>
+
+            <div class="question">
+              <p class="questiontext">
+                  Which of the following statements is <b>false</b>:
+              <select id="trueFalse2" name="constantObj">
+                <option value="noresp" SELECTED></option>
+                <option value="a">The two images of rooms will always be different</option>
+                <option value="b">There will always be only two images of rooms</option>
+              </select>
+              </p>
+            </div>
+
+
+
+          </form>
+          </p>
+
+        </div>
+        <!--END CONTENT-->
+        <!-- BUTTONS-->
+        <div id="centerdiv">
+          <!-- <button id="nextbutton" class="incenterdiv btn btn-success btn-lg" enabled>Continue</button> -->
+          <button type="button" id="continue" class="btn btn-warning btn-lg continue"> Continue </button>
+        </div>
+
+    </div> <!--END LOGIN FORM-->
+</div>
+<!-- END WRAPPER -->
